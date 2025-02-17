@@ -1,0 +1,20 @@
+name: Refresh Cache
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Huawei CDN Refresh Cache
+      uses: Buronn/huaweicloud-cdn-refresh-cache-action@v1.0.0
+      with:
+        access_key_id: ${{ secrets.HUAWEI_ACCESS_KEY_ID }}
+        secret_access_key: ${{ secrets.HUAWEI_SECRET_ACCESS_KEY }}
+        region: ${{ vars.HUAWEI_REGION }}
+        type: "directory"
+        urls: ${{ vars.URLS }}

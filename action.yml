@@ -1,0 +1,79 @@
+name: "Huawei CDN Refresh Cache Action"
+description: "Action to refresh cache on Huawei Cloud CDN"
+branding:
+  icon: 'activity'
+  color: 'red'
+inputs:
+  access_key_id:
+    description: "Huawei Cloud Access Key ID"
+    required: true
+  secret_access_key:
+    description: "Huawei Cloud Secret Access Key"
+    required: true
+  region:
+    description: "Region ID (cn-north-1 for Chinese Mainland, ap-southeast-1 for International)"
+    required: true
+
+  enterprise_project_id:
+    description: "ID of the enterprise project to which the cache purge task is added. This parameter is valid only when the enterprise project function is enabled. The value all indicates all projects. This parameter is mandatory when you use an IAM user to call this API. Obtain the enterprise project ID by calling the ListEnterpriseProject API of Enterprise Project Management Service (EPS)."
+    required: false
+
+  type:
+    description: "Type of the resource to refresh cache, options: file, directory"
+    required: false
+    default: "file"
+  mode:
+    description: "Refresh mode (all or detect_modify_refresh)"
+    required: false
+    default: "all"
+  zh_url_encode:
+    description: "Whether to encode the URL in Chinese"
+    required: false
+    default: "false"
+  urls:
+    description: "A URL must contain http:// or https://. A URL can contain up to 4,096 characters. Enter up to 1,000 URLs or 100 directories and separate them by commas (,), for example. url1, url2."
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Authenticate
+      uses: huaweicloud/auth-action@v1.1.0
+      with:
+        access_key_id: ${{ inputs.access_key_id }}
+        secret_access_key: ${{ inputs.secret_access_key }}
+        region: ${{ inputs.region }}
+
+    - name: Set up KooCLI
+      uses: huaweicloud/huaweicloud-cli-action@v1.0.0
+
+    - name: Refresh Cache
+      shell: bash
+      run: |
+        # Initialize an array for the command arguments
+        args=()
+
+        # Append enterprise_project_id if provided
+        if [ -n "${{ inputs.enterprise_project_id }}" ]; then
+          args+=( "--enterprise_project_id=${{ inputs.enterprise_project_id }}" )
+        fi
+
+        # Use defaults for type, mode, and zh_url_encode if not provided
+        args+=( "--refresh_task.type=${{ inputs.type }}" )
+        args+=( "--refresh_task.mode=${{ inputs.mode }}" )
+        args+=( "--refresh_task.zh_url_encode=${{ inputs.zh_url_encode }}" )
+
+        # Split URLs by comma, trim whitespace, and add them with an index
+        IFS=',' read -ra url_array <<< "${{ inputs.urls }}"
+        index=1
+        for url in "${url_array[@]}"; do
+          url=$(echo "$url" | xargs)  # Trim leading/trailing spaces
+          if [ -n "$url" ]; then
+            args+=( "--refresh_task.urls.${index}=${url}" )
+            index=$((index+1))
+          fi
+        done
+
+        # Build and execute the command
+        echo "Executing: hcloud CDN CreateRefreshTasks/v2 ${args[*]}"
+        hcloud CDN CreateRefreshTasks/v2 "${args[@]}"
