@@ -11,7 +11,7 @@ jobs:
 
     steps:
     - name: Huawei CDN Refresh Cache
-      uses: Buronn/huaweicloud-cdn-refresh-cache-action@v1.0.0
+      uses: Buronn/huaweicloud-cdn-refresh-cache-action@v1.0.1
       with:
         access_key_id: ${{ secrets.HUAWEI_ACCESS_KEY_ID }}
         secret_access_key: ${{ secrets.HUAWEI_SECRET_ACCESS_KEY }}
