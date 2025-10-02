@@ -55,12 +55,12 @@ runs:
 
         # Append enterprise_project_id if provided
         if [ -n "${{ inputs.enterprise_project_id }}" ]; then
-          args+=( "--enterprise_project_id=${{ inputs.enterprise_project_id }}" )
+          args+=( "--enterprise_project_id=\"${{ inputs.enterprise_project_id }}\"" )
         fi
 
-        # Use defaults for type, mode, and zh_url_encode if not provided
-        args+=( "--refresh_task.type=${{ inputs.type }}" )
-        args+=( "--refresh_task.mode=${{ inputs.mode }}" )
+        # Add type, mode, and zh_url_encode with quotes where needed
+        args+=( "--refresh_task.type=\"${{ inputs.type }}\"" )
+        args+=( "--refresh_task.mode=\"${{ inputs.mode }}\"" )
         args+=( "--refresh_task.zh_url_encode=${{ inputs.zh_url_encode }}" )
 
         # Split URLs by comma, trim whitespace, and add them with an index
@@ -69,7 +69,7 @@ runs:
         for url in "${url_array[@]}"; do
           url=$(echo "$url" | xargs)  # Trim leading/trailing spaces
           if [ -n "$url" ]; then
-            args+=( "--refresh_task.urls.${index}=${url}" )
+            args+=( "--refresh_task.urls.${index}=\"${url}\"" )
             index=$((index+1))
           fi
         done
